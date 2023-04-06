@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-pod # Base POD name
-  namespace: service-system
+  name: sales-pod # Base POD name
+  namespace: sales-system
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: service # Selector for POD name search
+      app: sales # Selector for POD name search
   template:
     metadata:
       labels:
-        app: service
+        app: sales
     spec:
       containers:
-      - name: service-api
+      - name: sales-api
         resources:
           limits:
             cpu: 2000m

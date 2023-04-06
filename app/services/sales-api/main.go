@@ -11,6 +11,7 @@ import (
 )
 
 var build = "develop"
+var version = "0"
 
 func main() {
 	if _, err := maxprocs.Set(); err != nil {
@@ -19,7 +20,7 @@ func main() {
 	}
 
 	cores := runtime.GOMAXPROCS(0)
-	log.Printf("service started. build=%s, CPUs=%d", build, cores)
+	log.Printf("service started. version=%s, build=%s, CPUs=%d", version, build, cores)
 	defer log.Print("service stopped")
 
 	shutdown := make(chan os.Signal, 1)
