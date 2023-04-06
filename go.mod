@@ -1,3 +1,3 @@
-module github.com/godwinrob/ardan-labs-web-3.0
+module github.com/godwinrob/service
 
 go 1.19
