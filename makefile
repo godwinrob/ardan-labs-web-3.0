@@ -6,6 +6,7 @@ run:
 # docker build
 
 VERSION := 1.0
+BUILD_REF := "local"
 
 all: service
 
@@ -13,7 +14,7 @@ service:
 	docker build \
 		-f zarf/docker/dockerfile \
 		-t service-arm64:$(VERSION) \
-		--build-arg BUILD_REF=$(VERSION) \
+		--build-arg BUILD_REF=$(BUILD_REF) \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 		.
 
@@ -40,7 +41,17 @@ kind-load:
 	kind load docker-image service-arm64:$(VERSION) --name $(KIND_CLUSTER)
 
 kind-apply:
-	cat zarf/k8s/base/service-pod/base-service.yaml | kubectl apply -f -
+	kustomize build zarf/k8s/kind/service-pod | kubectl apply -f -
 
 kind-logs:
 	kubectl logs -l app=service --all-containers=true -f --tail=100 --namespace=service-system
+
+kind-restart:
+	kubectl rollout restart deployment service-pod
+
+kind-update: all kind-load kind-restart
+
+kind-update-apply: all kind-load kind-apply
+
+kind-describe:
+	kubectl describe pod service-pod --namespace=service-system
