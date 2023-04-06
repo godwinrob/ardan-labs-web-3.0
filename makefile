@@ -12,7 +12,7 @@ all: service
 service:
 	docker build \
 		-f zarf/docker/dockerfile \
-		-t service-amd64:$(VERSION) \
+		-t service-arm64:$(VERSION) \
 		--build-arg BUILD_REF=$(VERSION) \
 		--build-arg BUILD_DATE=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
 		.
@@ -26,6 +26,7 @@ kind-up:
 		--image kindest/node:v1.21.1 \
 		--name $(KIND_CLUSTER) \
 		--config zarf/k8s/kind/kind-config.yaml
+	kubectl config set-context --current --namespace=service-system
 
 kind-down:
 	kind delete cluster --name $(KIND_CLUSTER)

@@ -22,4 +22,4 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
       - name: service-api
-        image: service-amd64:1.0
+        image: service-arm64:1.0
