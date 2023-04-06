@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 run:
-	go run main.go
+	go run app/services/sales-api/main.go | go run app/tooling/logfmt/main.go
 
 # docker build
 
@@ -46,7 +46,7 @@ kind-apply:
 	kustomize build zarf/k8s/kind/sales-pod | kubectl apply -f -
 
 kind-logs:
-	kubectl logs -l app=sales --all-containers=true -f --tail=100 --namespace=sales-system
+	kubectl logs -l app=sales --all-containers=true -f --tail=100 --namespace=sales-system | go run app/tooling/logfmt/main.go
 
 kind-restart:
 	kubectl rollout restart deployment sales-pod
