@@ -2,13 +2,17 @@ package main
 
 import (
 	"errors"
+	"expvar"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
 	"time"
+
+	"github.com/godwinrob/service/app/services/sales-api/handlers"
 
 	"github.com/ardanlabs/conf"
 	"go.uber.org/automaxprocs/maxprocs"
@@ -46,6 +50,7 @@ func run(sugarLog *zap.SugaredLogger) error {
 	}
 	sugarLog.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0))
 
+	////////////////////////////////////////////////////////////////////////
 	// Ardan Labs configuration
 
 	cfg := struct {
@@ -77,6 +82,7 @@ func run(sugarLog *zap.SugaredLogger) error {
 		return fmt.Errorf("parsing config: %w", err)
 	}
 
+	////////////////////////////////////////////////////////////////////////
 	// Run the service
 	sugarLog.Infow("starting service", "version", build)
 	defer sugarLog.Infow("shutdown complete")
@@ -87,7 +93,24 @@ func run(sugarLog *zap.SugaredLogger) error {
 	}
 
 	sugarLog.Infow("startup", "config", out)
+	expvar.NewString("build").Set(build)
 
+	////////////////////////////////////////////////////////////////////////
+	// Start Debug Service
+
+	sugarLog.Infow("startup", "status", "debug router started", "host", cfg.Web.DebugHost)
+
+	// Construct the mux for debug calls
+	debugMux := handlers.DebugStandardLibraryMux()
+
+	// Start the debug service listening for requests
+	go func() {
+		if err := http.ListenAndServe(cfg.Web.DebugHost, debugMux); err != nil {
+			sugarLog.Errorw("shutdown", "status", "debug router closed", cfg.Web.DebugHost, "ERROR", err)
+		}
+	}()
+
+	////////////////////////////////////////////////////////////////////////
 	// hold at shutdown until interrupt received from console
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
